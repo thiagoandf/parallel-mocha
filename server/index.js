@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3001;
 
 const app = express();
 
-app.use(express.static(path.resolve(__dirname, '../client/build')));
+app.use(express.static(path.resolve(__dirname, '../report-generator/build')));
 
 app.post('/report', upload.single('report'), (req, res) => {
   fs.createReadStream(req.file.path).pipe(unzipper.Extract({ path: 'content/' }));
@@ -30,6 +30,10 @@ app.post('/report', upload.single('report'), (req, res) => {
 
   // res.download();
   res.sendStatus(201);
+});
+
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, '../report-generator/build', 'index.html'));
 });
 
 app.listen(PORT, () => {
