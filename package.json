@@ -15,11 +15,9 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
+    "mochawesome-merge": "^4.2.0",
     "mochawesome-report-generator": "^5.2.0",
     "multer": "^1.4.2",
     "unzipper": "^0.10.11"
-  },
-  "devDependencies": {
-    "mochawesome-merge": "^4.2.0"
   }
 }

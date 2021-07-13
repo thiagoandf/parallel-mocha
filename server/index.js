@@ -28,7 +28,8 @@ app.post('/report', upload.single('report'), (req, res) => {
 
   marge.createSync(fs.readFileSync('content/file.json', 'utf-8'), {})
 
-  res.send();
+  // res.download();
+  res.sendStatus(201);
 });
 
 app.listen(PORT, () => {
