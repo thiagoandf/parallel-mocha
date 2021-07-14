@@ -19,29 +19,36 @@ const app = express();
 app.use(express.static(path.resolve(__dirname, '../report-generator/build')));
 
 app.post('/report', upload.single('report'), (req, res) => {
+  if (!req.file) {
+    res.end();
+    return;
+  }
+
   fs.createReadStream(req.file.path).pipe(unzipper.Extract({ path: 'content/' }))
   setTimeout(() => {
     merge({ files: ['content/e2e/output/*/*.json'] }).then(report => {
       marge.createSync(JSON.stringify(report), {});
 
-      const output = fs.createWriteStream('target.zip');
+      res.download('mochawesome-report/mochawesome.html');
 
-      output.on('close',  () => {
-        console.log(archive.pointer() + ' total bytes');
-        console.log('archiver has been finalized and the output file descriptor has closed.');
-      });
-
-      archive.on('error', function(err){
-        throw err;
-      });
-
-      archive.pipe(output);
-
-      archive.directory('mochawesome-report', '');
-
-      archive.finalize().then(() => {
-        res.download('./target.zip');
-      });
+      // const output = fs.createWriteStream('target.zip');
+      //
+      // output.on('close',  () => {
+      //   console.log(archive.pointer() + ' total bytes');
+      //   console.log('archiver has been finalized and the output file descriptor has closed.');
+      // });
+      //
+      // archive.on('error', function(err){
+      //   throw err;
+      // });
+      //
+      // archive.pipe(output);
+      //
+      // archive.directory('mochawesome-report', '');
+      //
+      // archive.finalize().then(() => {
+      //   res.download('./target.zip');
+      // });
     });
   }, 2000);
 });
