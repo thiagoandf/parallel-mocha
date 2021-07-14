@@ -1,5 +1,3 @@
-const { process_contents } = require("./file_parser");
-
 const express = require("express");
 const path = require("path");
 const fs = require('fs');
@@ -8,6 +6,9 @@ const multer = require('multer');
 const marge = require('mochawesome-report-generator')
 const { merge } = require('mochawesome-merge')
 
+const archiver = require('archiver');
+
+const archive = archiver('zip');
 
 const upload = multer({ dest: 'uploads/' })
 
@@ -18,18 +19,31 @@ const app = express();
 app.use(express.static(path.resolve(__dirname, '../report-generator/build')));
 
 app.post('/report', upload.single('report'), (req, res) => {
-  fs.createReadStream(req.file.path).pipe(unzipper.Extract({ path: 'content/' }));
+  fs.createReadStream(req.file.path).pipe(unzipper.Extract({ path: 'content/' }))
+  setTimeout(() => {
+    merge({ files: ['content/e2e/output/*/*.json'] }).then(report => {
+      marge.createSync(JSON.stringify(report), {});
 
-  console.log('process_contents', process_contents());
+      const output = fs.createWriteStream('target.zip');
 
-  // merge({ files: process_contents() }).then(report => console.log('report', report));
+      output.on('close',  () => {
+        console.log(archive.pointer() + ' total bytes');
+        console.log('archiver has been finalized and the output file descriptor has closed.');
+      });
 
-  fs.writeFileSync('content/file.json', JSON.stringify(process_contents()));
+      archive.on('error', function(err){
+        throw err;
+      });
 
-  marge.createSync(fs.readFileSync('content/file.json', 'utf-8'), {})
+      archive.pipe(output);
 
-  // res.download();
-  res.sendStatus(201);
+      archive.directory('mochawesome-report', '');
+
+      archive.finalize().then(() => {
+        res.download('./target.zip');
+      });
+    });
+  }, 2000);
 });
 
 app.get('*', (req, res) => {
